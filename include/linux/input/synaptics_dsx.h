@@ -35,11 +35,13 @@
 #define _SYNAPTICS_DSX_H_
 
 #define PLATFORM_DRIVER_NAME "synaptics_dsx"
+#define PLATFORM_DRIVER_FORCE "synaptics_force"
 #define STYLUS_DRIVER_NAME "synaptics_dsx_stylus"
 #define ACTIVE_PEN_DRIVER_NAME "synaptics_dsx_active_pen"
 #define PROXIMITY_DRIVER_NAME "synaptics_dsx_proximity"
 #define GESTURE_DRIVER_NAME "synaptics_dsx_gesture"
 #define I2C_DRIVER_NAME "synaptics_dsx_i2c"
+#define I2C_DRIVER_FORCE "synaptics_dsx_force"
 #define SPI_DRIVER_NAME "synaptics_dsx_spi"
 
 /*
@@ -50,6 +52,36 @@
 struct synaptics_dsx_button_map {
 	unsigned char nbuttons;
 	unsigned int *map;
+};
+
+struct synaptics_dsx_panel_power_seq {
+	int disp_pre_on_sleep;
+	int disp_post_on_sleep;
+	int disp_pre_off_sleep;
+	int disp_post_off_sleep;
+	int lab_pre_on_sleep;
+	int lab_post_on_sleep;
+	int lab_pre_off_sleep;
+	int lab_post_off_sleep;
+	int ibb_pre_on_sleep;
+	int ibb_post_on_sleep;
+	int ibb_pre_off_sleep;
+	int ibb_post_off_sleep;
+};
+
+struct synaptics_dsx_config_info {
+	int chip_id;
+	bool chip_is_tddi;
+	const char *chip_id_name;
+	unsigned char *tp_ids;
+	const char *fw_name;
+	struct synaptics_dsx_panel_power_seq panel_power_seq;
+};
+
+enum synaptics_dsx_lockdown_area {
+	LOCKDOWN_AREA_PRODUCT_ID = 0,
+	LOCKDOWN_AREA_GUEST_SERIALIZATION = 1,
+	LOCKDOWN_AREA_UNKNOWN = 0xFF,
 };
 
 /*
@@ -75,8 +107,10 @@ struct synaptics_dsx_button_map {
  * @reset_active_ms: reset active time
  * @byte_delay_us: delay time between two bytes of SPI data
  * @block_delay_us: delay time between two SPI transfers
- * @addr_delay_us: delay time after sending address word
  * @pwr_reg_name: pointer to name of regulator for power control
+ * @lab_reg_name: pointer to name of regulator for LCD lab control
+ * @ibb_reg_name: pointer to name of regulator for LCD ibb control
+ * @disp_reg_name: pointer to name of regulator for LCD vddio control
  * @bus_reg_name: pointer to name of regulator for bus pullup control
  * @cap_button_map: pointer to 0D button map
  * @vir_button_map: pointer to virtual button map
@@ -89,9 +123,14 @@ struct synaptics_dsx_board_data {
 	int irq_on_state;
 	int power_gpio;
 	int power_on_state;
+	int mdss_reset;
+	int mdss_reset_state;
 	int reset_gpio;
 	int reset_on_state;
 	int max_y_for_2d;
+	int config_array_size;
+	int tp_id_num;
+	unsigned char *tp_id_bytes;
 	unsigned long irq_flags;
 	unsigned short i2c_addr;
 	unsigned short ub_i2c_addr;
@@ -103,11 +142,25 @@ struct synaptics_dsx_board_data {
 	unsigned int reset_active_ms;
 	unsigned int byte_delay_us;
 	unsigned int block_delay_us;
-	unsigned int addr_delay_us;
+	bool cut_off_power;
+	bool power_ctrl;
+	bool panel_is_incell;
+	bool rt20_use_cbc;
 	const char *pwr_reg_name;
+	const char *lab_reg_name;
+	const char *ibb_reg_name;
+	const char *disp_reg_name;
 	const char *bus_reg_name;
+	const char *power_gpio_name;
+	const char *reset_gpio_name;
+	const char *irq_gpio_name;
+	const char *backup_fw_name;
+	const char *short_test25;
+	const char *short_test26;
 	struct synaptics_dsx_button_map *cap_button_map;
 	struct synaptics_dsx_button_map *vir_button_map;
+	struct synaptics_dsx_config_info *config_array;
+	enum synaptics_dsx_lockdown_area lockdown_area;
 };
 
 #endif
