@@ -27,6 +27,7 @@
 #include <linux/delay.h>
 #include <linux/regulator/consumer.h>
 #include <linux/delay.h>
+#include <asm/bootinfo.h>
 
 #define WLED_MOD_EN_REG(base, n)	(base + 0x60 + n*0x10)
 #define WLED_IDAC_DLY_REG(base, n)	(WLED_MOD_EN_REG(base, n) + 0x01)
@@ -3872,6 +3873,7 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 	int rc, i, num_leds = 0, parsed_leds = 0;
 	const char *led_label;
 	bool regulator_probe = false;
+	u32 hw_version;
 
 	node = pdev->dev.of_node;
 	if (node == NULL)
@@ -3889,6 +3891,7 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 	if (!led_array)
 		return -ENOMEM;
 
+	hw_version = get_hw_version();
 	for_each_child_of_node(node, temp) {
 		led = &led_array[parsed_leds];
 		led->num_leds = num_leds;
@@ -3921,6 +3924,13 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 			dev_err(&led->pdev->dev,
 				"Failure reading led name, rc = %d\n", rc);
 			goto fail_id_check;
+		}
+
+		/*for Oxygen P3C version hardware, button backlight is driven by another chipset*/
+		if ((strcmp(led->cdev.name, "button-backlight") == 0) && hw_version == 0x180) {
+			dev_err(&led->pdev->dev,
+				"hw_version 0x%x not support mpp button-backlight\n", hw_version);
+			continue;
 		}
 
 		rc = of_property_read_u32(temp, "qcom,max-current",
