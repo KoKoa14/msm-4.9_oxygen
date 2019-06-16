@@ -201,6 +201,12 @@ config MSM_11AD
 	  If you choose to build it as a module, it will be called
 	  msm_11ad_proxy.
 
+config GPIO13_RF
+	tristate "setting gpio13 for RF"
+	default n
+	help
+	 Enable this module if dynamically change RF paramaters by monitor status of GPIO13.
+
 config SEEMP_CORE
 	tristate "SEEMP Core"
 	help
