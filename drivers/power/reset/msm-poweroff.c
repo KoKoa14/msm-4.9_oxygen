@@ -63,7 +63,7 @@ static void scm_disable_sdi(void);
  * There is no API from TZ to re-enable the registers.
  * So the SDI cannot be re-enabled when it already by-passed.
  */
-static int download_mode = 1;
+static int download_mode;
 #else
 static const int download_mode;
 #endif
@@ -163,33 +163,6 @@ static bool get_dload_mode(void)
 	return dload_mode_enabled;
 }
 
-static void enable_emergency_dload_mode(void)
-{
-	int ret;
-
-	if (emergency_dload_mode_addr) {
-		__raw_writel(EMERGENCY_DLOAD_MAGIC1,
-				emergency_dload_mode_addr);
-		__raw_writel(EMERGENCY_DLOAD_MAGIC2,
-				emergency_dload_mode_addr +
-				sizeof(unsigned int));
-		__raw_writel(EMERGENCY_DLOAD_MAGIC3,
-				emergency_dload_mode_addr +
-				(2 * sizeof(unsigned int)));
-
-		/* Need disable the pmic wdt, then the emergency dload mode
-		 * will not auto reset.
-		 */
-		qpnp_pon_wd_config(0);
-		/* Make sure all the cookied are flushed to memory */
-		mb();
-	}
-
-	ret = scm_set_dload_mode(SCM_EDLOAD_MODE, 0);
-	if (ret)
-		pr_err("Failed to set secure EDLOAD mode: %d\n", ret);
-}
-
 static int dload_set(const char *val, const struct kernel_param *kp)
 {
 	int ret;
@@ -215,11 +188,6 @@ static int dload_set(const char *val, const struct kernel_param *kp)
 static void set_dload_mode(int on)
 {
 	return;
-}
-
-static void enable_emergency_dload_mode(void)
-{
-	pr_err("dload mode is not enabled on target\n");
 }
 
 static bool get_dload_mode(void)
@@ -358,8 +326,6 @@ static void msm_restart_prepare(const char *cmd)
 				__raw_writel(0x6f656d00 | (code & 0xff),
 					     restart_reason);
 			}
-		} else if (!strncmp(cmd, "edl", 3)) {
-			enable_emergency_dload_mode();
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
