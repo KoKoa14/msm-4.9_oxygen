@@ -76,7 +76,7 @@
 		&cdc_pdm_lines_2_act &cross_conn_det_sus
 		&pri_tlmm_lines_act &pri_tlmm_ws_act>;
 
-	asoc-codec = <&stub_codec>, <&pm8953_diangu_dig>;
+	asoc-codec = <&stub_codec>;
 	asoc-codec-names = "msm-stub-codec.1", "cajon_codec";
 
 	/delete-property/ pinctrl-8;
@@ -94,14 +94,6 @@
 	/delete-property/ msm-vdd-wsa-switch-supply;
 	/delete-property/ qcom,msm-vdd-wsa-switch-voltage;
 	/delete-property/ qcom,msm-vdd-wsa-switch-current;
-};
-
-&pm8953_diangu_dig {
-	status = "okay";
-};
-
-&pm8953_diangu_analog {
-	status = "okay";
 };
 
 &wsa881x_i2c_e {
