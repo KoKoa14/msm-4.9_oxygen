@@ -959,6 +959,7 @@
 
 &usb3 {
 	qcom,detect-dpdm-floating;
+	extcon = <&qpnp_smbcharger>;
 };
 
 &pmi8950_gpios {
